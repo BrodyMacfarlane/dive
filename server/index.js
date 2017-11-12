@@ -76,8 +76,8 @@ passport.deserializeUser((id, done) => {
 
 app.get('/auth', passport.authenticate('auth0'))
 app.get('/auth/callback', passport.authenticate('auth0', {
-    successRedirect: '/dashboard',
-    failureRedirect: '/auth'
+    successRedirect: '/#/dashboard',
+    failureRedirect: '/#/auth'
 }))
 
 
@@ -86,7 +86,7 @@ app.get('/auth/me', (req, res) => {
         return res.status(200).send(req.user)
     }
     else {
-        return res.redirect(401, '/auth').send("Need to log in.")
+        return res.redirect(401, '/#/auth').send("Need to log in.")
     }
 })
 app.get('/auth/logout', (req, res) => {
@@ -98,12 +98,26 @@ app.get('/auth/logout', (req, res) => {
 //signer
 app.post('/api/getSignedURL', sc.getSignedURL)
 
+app.get('/api/getSongs', (req, res) => {
+    const db = app.get('db')
+    db.get_all_songs().then(songs => {
+       res.send(songs)
+    })
+})
 
 app.post('/api/newSong', (req, res) => {
     const db = app.get('db')
     const songData = req.body
     db.add_song([songData.creator_id, songData.title, songData.url]).then(() => {
         return res.status(200).send(`added new song ${songData.title}`)
+    })
+})
+
+app.get('/api/profile/:id', (req, res) => {
+    const db = app.get('db')
+    db.get_users_songs([req.params.id])
+    .then(songs => {
+        return res.status(200).send(songs)
     })
 })
 
